@@ -1,0 +1,45 @@
+name: Update Formula
+
+on:
+  schedule:
+    # Runs every day at 08:00 UTC
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+    # Allow manual trigger
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tap
+        uses: actions/checkout@v4
+
+      - name: Check for new npm version
+        id: npm
+        run: |
+          LATEST=$(curl -s https://registry.npmjs.org/@andrzejchm/notion-cli/latest | jq -r '.version')
+          CURRENT=$(grep 'url "https://registry' Formula/notion-cli.rb | grep -oP '\d+\.\d+\.\d+')
+          echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+          echo "current=$CURRENT" >> "$GITHUB_OUTPUT"
+          if [ "$LATEST" = "$CURRENT" ]; then
+            echo "up_to_date=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "up_to_date=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Update formula
+        if: steps.npm.outputs.up_to_date == 'false'
+        env:
+          VERSION: ${{ steps.npm.outputs.latest }}
+        run: |
+          TARBALL_URL="https://registry.npmjs.org/@andrzejchm/notion-cli/-/notion-cli-${VERSION}.tgz"
+          SHA256=$(curl -sL "$TARBALL_URL" | shasum -a 256 | awk '{print $1}')
+
+          sed -i "s|url \"https://registry.npmjs.org/@andrzejchm/notion-cli/-/notion-cli-.*\.tgz\"|url \"${TARBALL_URL}\"|" Formula/notion-cli.rb
+          sed -i "s|sha256 \".*\"|sha256 \"${SHA256}\"|" Formula/notion-cli.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Formula/notion-cli.rb
+          git commit -m "notion-cli ${VERSION}"
+          git push
