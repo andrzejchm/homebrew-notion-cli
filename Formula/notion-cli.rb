@@ -4,8 +4,8 @@
 class NotionCli < Formula
   desc "Read Notion pages and databases from the terminal"
   homepage "https://github.com/andrzejchm/notion-cli"
-  url "https://registry.npmjs.org/@andrzejchm/notion-cli/-/notion-cli-0.5.0.tgz"
-  sha256 "4b7512369837ca5dfbbe1ff91d5f3105d183bcf88c91fdc2d5b87e087d803954"
+  url "https://registry.npmjs.org/@andrzejchm/notion-cli/-/notion-cli-0.6.0.tgz"
+  sha256 "21b1146e9f6268d456dd6dea748e3ef45edc47312b2e13cab4b6c4475b17599b"
   license "MIT"
 
   depends_on "node"
